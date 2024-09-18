@@ -95,9 +95,7 @@ export class TreeApi<T> {
     const match =
       this.props.searchMatch ??
       ((node, term) => {
-        const string = JSON.stringify(
-          Object.values(node.data as { [k: string]: unknown })
-        );
+        const string = JSON.stringify(Object.values(node.data as { [k: string]: unknown }));
         return string.toLocaleLowerCase().includes(term.toLocaleLowerCase());
       });
     return (node: NodeApi<T>) => match(node, this.searchTerm);
@@ -111,10 +109,7 @@ export class TreeApi<T> {
   accessId(data: T) {
     const get = this.props.idAccessor || "id";
     const id = utils.access<string>(data, get);
-    if (!id)
-      throw new Error(
-        "Data must contain an 'id' property or props.idAccessor must return a string"
-      );
+    if (!id) throw new Error("Data must contain an 'id' property or props.idAccessor must return a string");
     return id;
   }
 
@@ -150,8 +145,7 @@ export class TreeApi<T> {
 
   get(id: string | null): NodeApi<T> | null {
     if (!id) return null;
-    if (id in this.idToIndex)
-      return this.visibleNodes[this.idToIndex[id]] || null;
+    if (id in this.idToIndex) return this.visibleNodes[this.idToIndex[id]] || null;
     else return null;
   }
 
@@ -196,10 +190,7 @@ export class TreeApi<T> {
       index?: null | number;
     } = {}
   ) {
-    const parentId =
-      opts.parentId === undefined
-        ? utils.getInsertParentId(this)
-        : opts.parentId;
+    const parentId = opts.parentId === undefined ? utils.getInsertParentId(this) : opts.parentId;
     const index = opts.index ?? utils.getInsertIndex(this);
     const type = opts.type ?? "leaf";
     const data = await safeRun(this.props.onCreate, {
@@ -222,8 +213,11 @@ export class TreeApi<T> {
   async delete(node: string | IdObj | null | string[] | IdObj[]) {
     if (!node) return;
     const idents = Array.isArray(node) ? node : [node];
-    const ids = idents.map(identify);
-    const nodes = ids.map((id) => this.get(id)!).filter((n) => !!n);
+    const ids = new Set(idents.map(identify));
+    const nodes = Array.from(ids)
+      .map((id) => this.get(id)!)
+      .filter((n) => !!n);
+
     await safeRun(this.props.onDelete, { nodes, ids });
   }
 
@@ -414,9 +408,7 @@ export class TreeApi<T> {
   }
 
   get dragNodes() {
-    return this.state.dnd.dragIds
-      .map((id) => this.get(id))
-      .filter((n) => !!n) as NodeApi<T>[];
+    return this.state.dnd.dragIds.map((id) => this.get(id)).filter((n) => !!n) as NodeApi<T>[];
   }
 
   get dragNode() {

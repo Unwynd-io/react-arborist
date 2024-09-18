@@ -1,11 +1,6 @@
 import { useMemo, useState } from "react";
 import { SimpleTree } from "../data/simple-tree";
-import {
-  CreateHandler,
-  DeleteHandler,
-  MoveHandler,
-  RenameHandler,
-} from "../types/handlers";
+import { CreateHandler, DeleteHandler, MoveHandler, RenameHandler } from "../types/handlers";
 import { IdObj } from "../types/utils";
 
 export type SimpleTreeData = {
@@ -25,11 +20,7 @@ export function useSimpleTree<T>(initialData: readonly T[]) {
     [data]
   );
 
-  const onMove: MoveHandler<T> = (args: {
-    dragIds: string[];
-    parentId: null | string;
-    index: number;
-  }) => {
+  const onMove: MoveHandler<T> = (args: { dragIds: string[]; parentId: null | string; index: number }) => {
     for (const id of args.dragIds) {
       tree.move({ id, parentId: args.parentId, index: args.index });
     }
@@ -49,7 +40,7 @@ export function useSimpleTree<T>(initialData: readonly T[]) {
     return data;
   };
 
-  const onDelete: DeleteHandler<T> = (args: { ids: string[] }) => {
+  const onDelete: DeleteHandler<T> = (args: { ids: Set<string> }) => {
     args.ids.forEach((id) => tree.drop({ id }));
     setData(tree.data);
   };

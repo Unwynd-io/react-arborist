@@ -1,10 +1,19 @@
 {
-  "name": "react-arborist-monorepo",
+  "name": "@scribe/react-arborist",
+  "version": "1.0.0",
   "workspaces": [
     "./modules/*"
   ],
+  "main": "modules/react-arborist/dist/main/index.js",
+  "module": "modules/react-arborist/dist/module/index.js",
+  "types": "modules/react-arborist/dist/module/index.d.ts",
+  "files": [
+    "modules/react-arborist/dist",
+    "modules/react-arborist/src"
+  ],
   "scripts": {
-    "build": "yarn workspaces foreach --all run build",
+    "build:all": "yarn workspaces foreach --all run build",
+    "build": "yarn workspace react-arborist build",
     "test": "yarn workspaces foreach --all run test",
     "bump": "yarn workspace react-arborist version",
     "publish": "sh bin/publish"

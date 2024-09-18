@@ -4,8 +4,8 @@ import * as renderers from "./renderers";
 import { ElementType, MouseEventHandler } from "react";
 import { ListOnScrollProps } from "react-window";
 import { NodeApi } from "../interfaces/node-api";
-import { OpenMap } from "../state/open-slice";
 import { useDragDropManager } from "react-dnd";
+import { OpenMap } from "../state/open-slice";
 
 export interface TreeProps<T> {
   /* Data Options */
@@ -17,6 +17,11 @@ export interface TreeProps<T> {
   onMove?: handlers.MoveHandler<T>;
   onRename?: handlers.RenameHandler<T>;
   onDelete?: handlers.DeleteHandler<T>;
+
+  onCopy?: handlers.CopyHandler<T>;
+  onPaste?: handlers.PasteHandler<T>;
+
+  onEnter?: handlers.EnterHandler<T>;
 
   /* Renderers*/
   children?: ElementType<renderers.NodeRendererProps<T>>;
@@ -46,11 +51,7 @@ export interface TreeProps<T> {
   disableDrop?:
     | string
     | boolean
-    | ((args: {
-        parentNode: NodeApi<T>;
-        dragNodes: NodeApi<T>[];
-        index: number;
-      }) => boolean);
+    | ((args: { parentNode: NodeApi<T>; dragNodes: NodeApi<T>[]; index: number }) => boolean);
 
   /* Event Handlers */
   onActivate?: (node: NodeApi<T>) => void;
@@ -77,4 +78,17 @@ export interface TreeProps<T> {
   onClick?: MouseEventHandler;
   onContextMenu?: MouseEventHandler;
   dndManager?: ReturnType<typeof useDragDropManager>;
+
+  /* Custom Added */
+  onContextMenuOpen?: (value: "settings" | "plus") => (e: React.MouseEvent) => void;
+  onCloseOtherOpenFiles?: (nodeId: string) => void;
+
+  onDocumentEmojiClick?: (documentId: string) => (emoji: any) => void;
+  onDocumentEmojiClear?: (documentId: string) => () => void;
+
+  onProjectEmojiClick?: (projectId: string) => (emoji: any) => void;
+  onProjectEmojiClear?: (projectId: string) => () => void;
+
+  isDevMode?: boolean;
+  meta?: Record<string, any>;
 }
