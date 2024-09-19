@@ -90,5 +90,9 @@ export interface TreeProps<T> {
   onProjectEmojiClear?: (projectId: string) => () => void;
 
   isDevMode?: boolean;
+
+  isWorkspaceTree?: boolean;
+  isProjectTree?: boolean;
+
   meta?: Record<string, any>;
 }

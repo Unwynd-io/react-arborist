@@ -5,7 +5,7 @@ export type CreateHandler<T> = (args: {
   parentId: string | null;
   parentNode: NodeApi<T> | null;
   index: number;
-  type: "internal" | "leaf" | ("FILE" | "SUBFILE" | "FOLDER");
+  type: "internal" | "leaf" | ("FILE" | "SUBFILE" | "FOLDER" | "PROJECT");
 }) => (IdObj | null) | Promise<IdObj | null>;
 
 export type MoveHandler<T> = (args: {

@@ -6,8 +6,11 @@ import { RowContainer } from "./row-container";
 import { TreeApi } from "../interfaces/tree-api";
 import { useEffect } from "react";
 
+let focusSearchTerm = "";
+let timeoutId: any = null;
+
 const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
-  const { onCreate } = tree.props;
+  const { onCreate, isWorkspaceTree } = tree.props;
 
   if (!onCreate) {
     console.warn("[handleKeyDown] [tree] Missing props!!!");
@@ -28,7 +31,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
       index: 0,
       parentId: null,
       parentNode: null,
-      type: "FOLDER",
+      type: isWorkspaceTree ? "PROJECT" : "FOLDER",
     });
     return;
   } else if (e.key === "n" && e.metaKey) {
@@ -36,7 +39,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
       index: 0,
       parentId: null,
       parentNode: null,
-      type: "FILE",
+      type: isWorkspaceTree ? "PROJECT" : "FILE",
     });
     return;
   }
@@ -55,6 +58,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     setTimeout(() => {
       if (node) tree.edit(node);
     });
+
     return;
   }
 
@@ -82,8 +86,9 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   // ! TREE AND NODE FOCUS KEY-BINDS
 
   // ? Opening file, with focus swapping to it.
-  if (e.key === "Enter") {
+  if (e.key === "Enter" && !focusedNode.isEditing) {
     e.preventDefault();
+
     tree.setSelection({ ids: [focusedNode.id], anchor: focusedNode.id, mostRecent: focusedNode.id });
     tree.props.onEnter?.({ node: focusedNode });
     return;
@@ -104,7 +109,14 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
 
   // ? Delete focused node(s).
   if (e.key === "Backspace" && e.metaKey) {
-    tree?.props?.onDelete?.({ ids: selectedIds, nodes: selectedNodes });
+    const isFocusedNodeSelected = selectedIds.has(focusedNode.id);
+
+    if (!isFocusedNodeSelected) {
+      tree?.props?.onDelete?.({ ids: new Set([focusedNode.id]), nodes: [focusedNode] });
+    } else {
+      tree?.props?.onDelete?.({ ids: selectedIds, nodes: selectedNodes });
+    }
+
     return;
   }
 
@@ -174,12 +186,6 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     return;
   }
 
-  // ? Select on focused node.
-  if (e.key === "Enter") {
-    focusedNode.select();
-    return;
-  }
-
   if (e.key === " ") {
     e.preventDefault();
     if (!focusedNode.isLeaf) {
@@ -192,6 +198,24 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     tree.openSiblings(focusedNode);
     return;
   }
+
+  // If they type a sequence of characters
+  // collect them. Reset them after a timeout.
+  // Use it to search the tree for a node, then focus it.
+  // Clean this up a bit later
+  clearTimeout(timeoutId);
+  focusSearchTerm += e.key;
+  timeoutId = setTimeout(() => {
+    focusSearchTerm = "";
+  }, 600);
+  const node = tree.visibleNodes.find((n) => {
+    // @ts-ignore
+    const name = n.data.name;
+    if (typeof name === "string") {
+      return name.toLowerCase().startsWith(focusSearchTerm);
+    } else return false;
+  });
+  if (node) tree.focus(node.id);
 
   return;
 };
@@ -220,6 +244,10 @@ export function DefaultContainer() {
       document.removeEventListener("keydown", handleKeyDownWithContext);
     };
   }, [tree]);
+
+  useEffect(() => {
+    tree.onFocus();
+  }, []);
 
   return (
     <div
