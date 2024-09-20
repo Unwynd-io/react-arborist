@@ -4,10 +4,10 @@ import { ListOuterElement } from "./list-outer-element";
 import { ListInnerElement } from "./list-inner-element";
 import { RowContainer } from "./row-container";
 import { TreeApi } from "../interfaces/tree-api";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-let focusSearchTerm = "";
-let timeoutId: any = null;
+let focusSearchTerm: string = "";
+let timeoutId: NodeJS.Timeout | null = null;
 
 const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   const { onCreate, isWorkspaceTree } = tree.props;
@@ -22,24 +22,38 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   }
 
   const focusWithinTree: boolean =
-    document.activeElement && tree.listEl.current?.contains(document.activeElement) ? true : false;
+    tree.hasFocus || (document.activeElement && tree.listEl.current?.contains(document.activeElement)) ? true : false;
+
+  // console.log("[Tree][handleKeyDown] ", { focusWithinTree, e });
 
   // ! GLOBAL TREE KEY-BINDS (NO FOCUSES REQUIRED)
   // ? Creating a new file or folder node.
-  if (e.key === "n" && e.metaKey && e.shiftKey) {
+  if (e.key === "n" && (e.metaKey || e.ctrlKey)) {
+    const isFolderCreate = e.shiftKey;
+    const type = isFolderCreate ? (isWorkspaceTree ? "PROJECT" : "FOLDER") : isWorkspaceTree ? "PROJECT" : "FILE";
+
+    let parentId: string | null = null;
+    let parentNode = null;
+
+    // @ts-ignore data is an unknown type.
+    const haveFocusedFolder = tree.focusedNode?.data.type === "FOLDER";
+    if (haveFocusedFolder) {
+      parentId = tree.focusedNode.id;
+      parentNode = tree.focusedNode;
+    } else {
+      // @ts-ignore data is an unknown type.
+      const haveParentFolder = tree.focusedNode?.parent?.data.type === "FOLDER";
+      if (haveParentFolder) {
+        parentId = tree.focusedNode?.parent?.id as string;
+        parentNode = tree.focusedNode?.parent;
+      }
+    }
+
     onCreate({
       index: 0,
-      parentId: null,
-      parentNode: null,
-      type: isWorkspaceTree ? "PROJECT" : "FOLDER",
-    });
-    return;
-  } else if (e.key === "n" && e.metaKey) {
-    onCreate({
-      index: 0,
-      parentId: null,
-      parentNode: null,
-      type: isWorkspaceTree ? "PROJECT" : "FILE",
+      parentId,
+      parentNode,
+      type,
     });
     return;
   }
@@ -81,6 +95,8 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   const selectedNodes = tree.selectedNodes;
   const focusedNode = tree.focusedNode;
 
+  // console.log("[Tree][handleKeyDown] ", { focusedNode, selectedIds, selectedNodes });
+
   if (!focusedNode) return;
 
   // ! TREE AND NODE FOCUS KEY-BINDS
@@ -112,9 +128,17 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     const isFocusedNodeSelected = selectedIds.has(focusedNode.id);
 
     if (!isFocusedNodeSelected) {
-      tree?.props?.onDelete?.({ ids: new Set([focusedNode.id]), nodes: [focusedNode] });
+      tree?.props?.onDelete?.({
+        ids: new Set([focusedNode.id]),
+        nodes: [focusedNode],
+        nodeToFocusAfter: focusedNode?.prev || focusedNode?.next,
+      });
     } else {
-      tree?.props?.onDelete?.({ ids: selectedIds, nodes: selectedNodes });
+      tree?.props?.onDelete?.({
+        ids: selectedIds,
+        nodes: selectedNodes,
+        nodeToFocusAfter: selectedNodes[0]?.prev || selectedNodes[selectedNodes.length - 1]?.next,
+      });
     }
 
     return;
@@ -203,7 +227,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   // collect them. Reset them after a timeout.
   // Use it to search the tree for a node, then focus it.
   // Clean this up a bit later
-  clearTimeout(timeoutId);
+  clearTimeout(timeoutId as NodeJS.Timeout);
   focusSearchTerm += e.key;
   timeoutId = setTimeout(() => {
     focusSearchTerm = "";
@@ -232,7 +256,19 @@ export function DefaultContainer() {
   };
 
   const handleOnBlur = (e: React.FocusEvent<HTMLDivElement, Element>) => {
-    if (!e.currentTarget.contains(e.relatedTarget)) {
+    // console.log("[blur] default container", { e, role: e?.target?.getAttribute("role") });
+    const preventIds = ["node-settings-button", "node-plus-button", "create-popup-name"];
+
+    const isNodeTreeItemNoRel = e?.target?.getAttribute("role") === "treeitem" && !e?.relatedTarget;
+    if (isNodeTreeItemNoRel) {
+      return;
+    }
+
+    if (
+      !e.currentTarget.contains(e.relatedTarget) &&
+      !preventIds.includes(e?.relatedTarget?.id as string) &&
+      !preventIds.includes(e?.target?.id)
+    ) {
       tree.onBlur();
     }
   };
@@ -252,6 +288,7 @@ export function DefaultContainer() {
   return (
     <div
       role="tree"
+      tabIndex={0}
       style={{
         height: tree.height,
         width: tree.width,
@@ -259,8 +296,7 @@ export function DefaultContainer() {
         minWidth: 0,
       }}
       onContextMenu={tree.props.onContextMenu}
-      onClick={tree.props.onClick}
-      tabIndex={0}
+      onClick={tree?.props?.onClick}
       onFocus={handleOnFocus}
       onBlur={handleOnBlur}
     >

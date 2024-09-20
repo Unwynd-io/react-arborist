@@ -18,7 +18,11 @@ export type MoveHandler<T> = (args: {
 
 export type RenameHandler<T> = (args: { id: string; name: string; node: NodeApi<T> }) => void | Promise<void>;
 
-export type DeleteHandler<T> = (args: { ids: Set<string>; nodes: NodeApi<T>[] }) => void | Promise<void>;
+export type DeleteHandler<T> = (args: {
+  ids: Set<string>;
+  nodes: NodeApi<T>[];
+  nodeToFocusAfter: NodeApi<T> | null;
+}) => void | Promise<void>;
 
 export type EditResult = { cancelled: true } | { cancelled: false; value: string };
 

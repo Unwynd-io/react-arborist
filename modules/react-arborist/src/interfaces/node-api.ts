@@ -17,7 +17,7 @@ type Params<T> = {
 export class NodeApi<T = any> {
   tree: TreeApi<T>;
   id: string;
-  data: T;
+  data: T; // TODO: define this as TreeItemData from app.
   level: number;
   children: NodeApi<T>[] | null;
   parent: NodeApi<T> | null;

@@ -218,7 +218,9 @@ export class TreeApi<T> {
       .map((id) => this.get(id)!)
       .filter((n) => !!n);
 
-    await safeRun(this.props.onDelete, { nodes, ids });
+    const nodeToFocusAfter = this.selectedNodes[0]?.prev || this.selectedNodes[this.selectedNodes.length - 1]?.next;
+
+    await safeRun(this.props.onDelete, { nodes, ids, nodeToFocusAfter });
   }
 
   edit(node: string | IdObj): Promise<EditResult> {
