@@ -9,6 +9,14 @@ import { useEffect, useRef } from "react";
 let focusSearchTerm: string = "";
 let timeoutId: NodeJS.Timeout | null = null;
 
+const focusEditorIfOpen = () => {
+  // TODO: add id to editor element?
+  const editor = document.getElementsByClassName("ProseMirror")[0] as HTMLElement;
+  if (editor) {
+    editor.focus();
+  }
+};
+
 const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   const { onCreate, isWorkspaceTree } = tree.props;
 
@@ -21,14 +29,14 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     return;
   }
 
+  const isRepeatEvent: boolean = e.repeat;
+  const pressedControlKey: boolean = e.metaKey || e.ctrlKey;
   const focusWithinTree: boolean =
     tree.hasFocus || (document.activeElement && tree.listEl.current?.contains(document.activeElement)) ? true : false;
 
-  // console.log("[Tree][handleKeyDown] ", { focusWithinTree, e });
-
   // ! GLOBAL TREE KEY-BINDS (NO FOCUSES REQUIRED)
   // ? Creating a new file or folder node.
-  if (e.key === "n" && (e.metaKey || e.ctrlKey)) {
+  if (e.key === "n" && pressedControlKey) {
     const isFolderCreate = e.shiftKey;
     const type = isFolderCreate ? (isWorkspaceTree ? "PROJECT" : "FOLDER") : isWorkspaceTree ? "PROJECT" : "FILE";
 
@@ -59,7 +67,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   }
 
   // ? Toggle edit on focused node.
-  if (e.key === "r" && e.metaKey) {
+  if (e.key === "r" && pressedControlKey) {
     const node = tree.focusedNode;
     if (!node) return;
 
@@ -76,7 +84,28 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     return;
   }
 
+  if (e.key === "d" && pressedControlKey) {
+    // focus is elsewhere, ignore this.
+    if (!document.activeElement?.classList.contains("ProseMirror") && !tree.hasFocus) {
+      return false;
+    }
+
+    if (!tree.hasFocus) {
+      tree.onFocus();
+    } else {
+      focusEditorIfOpen();
+    }
+
+    return;
+  }
+
   if (!focusWithinTree) {
+    return;
+  }
+
+  if (e.key === "Escape") {
+    tree.onBlur();
+    focusEditorIfOpen();
     return;
   }
 
@@ -111,12 +140,12 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   }
 
   // ? Copy/Paste selected node(s).
-  if (e.key === "v" && e.metaKey) {
+  if (e.key === "v" && pressedControlKey && !isRepeatEvent) {
     const focusedNodeId = tree.focusedNode?.id;
     if (!focusedNodeId) return;
     tree?.props?.onPaste?.({ parentId: focusedNodeId });
     return;
-  } else if (e.key === "c" && e.metaKey) {
+  } else if (e.key === "c" && pressedControlKey && !isRepeatEvent) {
     const copyNodesData = tree.selectedNodes.map((node) => node.data);
     if (copyNodesData.length === 0) return;
     tree?.props?.onCopy?.({ copyNodesData });
@@ -124,7 +153,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   }
 
   // ? Delete focused node(s).
-  if (e.key === "Backspace" && e.metaKey) {
+  if (e.key === "Backspace" && pressedControlKey && !isRepeatEvent) {
     const isFocusedNodeSelected = selectedIds.has(focusedNode.id);
 
     if (!isFocusedNodeSelected) {
@@ -148,7 +177,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   if (e.key === "ArrowDown") {
     e.preventDefault();
     const next = tree.nextNode;
-    if (e.metaKey) {
+    if (pressedControlKey) {
       tree.select(focusedNode);
       tree.activate(focusedNode);
       return;
@@ -204,13 +233,13 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   }
 
   // ? Selecting entire note tree.
-  if (e.key === "a" && e.metaKey && !tree.props.disableMultiSelection) {
+  if (e.key === "a" && pressedControlKey && !tree.props.disableMultiSelection && !isRepeatEvent) {
     e.preventDefault();
     tree.selectAll();
     return;
   }
 
-  if (e.key === " ") {
+  if (e.key === " " && !isRepeatEvent) {
     e.preventDefault();
     if (!focusedNode.isLeaf) {
       focusedNode.toggle();
@@ -218,7 +247,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     return;
   }
 
-  if (e.key === "*") {
+  if (e.key === "*" && !isRepeatEvent) {
     tree.openSiblings(focusedNode);
     return;
   }
