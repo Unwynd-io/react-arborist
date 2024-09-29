@@ -19,13 +19,13 @@ const focusEditorIfOpen = () => {
 
 const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   const { onCreate, isWorkspaceTree } = tree.props;
-
   if (!onCreate) {
     console.warn("[handleKeyDown] [tree] Missing props!!!");
     return;
   }
 
-  if (tree.isEditing) {
+  const focusWithinInput: boolean = document?.activeElement?.tagName === "INPUT";
+  if (tree.isEditing || focusWithinInput) {
     return;
   }
 
