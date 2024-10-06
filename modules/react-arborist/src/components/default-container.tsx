@@ -31,8 +31,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
 
   const isRepeatEvent: boolean = e.repeat;
   const pressedControlKey: boolean = e.metaKey || e.ctrlKey;
-  const focusWithinTree: boolean =
-    tree.hasFocus || (document.activeElement && tree.listEl.current?.contains(document.activeElement)) ? true : false;
+  const focusWithinTree: boolean = tree.hasFocus;
 
   // ! GLOBAL TREE KEY-BINDS (NO FOCUSES REQUIRED)
   // ? Creating a new file or folder node.
