@@ -95,4 +95,5 @@ export interface TreeProps<T> {
   isProjectTree?: boolean;
 
   meta?: Record<string, any>;
+  autoFocus?: boolean;
 }

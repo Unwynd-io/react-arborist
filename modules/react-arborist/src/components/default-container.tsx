@@ -9,12 +9,23 @@ import { useEffect, useRef } from "react";
 let focusSearchTerm: string = "";
 let timeoutId: NodeJS.Timeout | null = null;
 
-const focusEditorIfOpen = () => {
+const handleRestoreFocusTreeBlur = (tree: TreeApi<unknown>) => {
+  // Try focus editor, or overview.
   // TODO: add id to editor element?
   const editor = document.getElementsByClassName("ProseMirror")[0] as HTMLElement;
   if (editor) {
     editor.focus();
+    return true;
   }
+
+  const coverContainer = document.getElementById("CoverContainer");
+  if (coverContainer) {
+    tree?.onBlur();
+    coverContainer.click();
+    return true;
+  }
+
+  return false;
 };
 
 const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
@@ -92,7 +103,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     if (!tree.hasFocus) {
       tree.onFocus();
     } else {
-      focusEditorIfOpen();
+      handleRestoreFocusTreeBlur(tree);
     }
 
     return;
@@ -104,7 +115,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
 
   if (e.key === "Escape") {
     tree.onBlur();
-    focusEditorIfOpen();
+    handleRestoreFocusTreeBlur(tree);
     return;
   }
 
@@ -284,13 +295,9 @@ export function DefaultContainer() {
   };
 
   const handleOnBlur = (e: React.FocusEvent<HTMLDivElement, Element>) => {
-    // console.log("[blur] default container", { e, role: e?.target?.getAttribute("role") });
-    const preventIds = ["node-settings-button", "node-plus-button", "create-popup-name"];
+    console.log("[blur] default container", { e, role: e?.target?.getAttribute("role") });
 
-    const isNodeTreeItemNoRel = e?.target?.getAttribute("role") === "treeitem" && !e?.relatedTarget;
-    if (isNodeTreeItemNoRel) {
-      return;
-    }
+    const preventIds = ["node-settings-button", "node-plus-button", "create-popup-name"];
 
     if (
       !e.currentTarget.contains(e.relatedTarget) &&
@@ -310,7 +317,9 @@ export function DefaultContainer() {
   }, [tree]);
 
   useEffect(() => {
-    tree.onFocus();
+    if (tree.props.autoFocus) {
+      tree.onFocus();
+    }
   }, []);
 
   return (
