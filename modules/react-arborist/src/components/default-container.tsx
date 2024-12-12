@@ -76,6 +76,12 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     return;
   }
 
+  // ? Open context menu on right arrow key.
+  if (e.key === "ArrowRight") {
+    tree.props.onContextMenu?.(e);
+    return true;
+  }
+
   // ? Toggle edit on focused node.
   if (e.key === "r" && pressedControlKey) {
     const node = tree.focusedNode;
@@ -227,20 +233,20 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   }
 
   // ? Arrow Keys | Toggling open or close on focused node.
-  if (e.key === "ArrowRight") {
-    if (focusedNode.isInternal && focusedNode.isOpen) {
-      tree.focus(tree.nextNode);
-    } else if (focusedNode.isInternal) tree.open(focusedNode.id);
-    return;
-  }
-  if (e.key === "ArrowLeft") {
-    if (focusedNode.isRoot) return;
-    if (focusedNode.isInternal && focusedNode.isOpen) tree.close(focusedNode.id);
-    else if (!focusedNode.parent?.isRoot) {
-      tree.focus(focusedNode.parent);
-    }
-    return;
-  }
+  // if (e.key === "ArrowRight") {
+  //   if (focusedNode.isInternal && focusedNode.isOpen) {
+  //     tree.focus(tree.nextNode);
+  //   } else if (focusedNode.isInternal) tree.open(focusedNode.id);
+  //   return;
+  // }
+  // if (e.key === "ArrowLeft") {
+  //   if (focusedNode.isRoot) return;
+  //   if (focusedNode.isInternal && focusedNode.isOpen) tree.close(focusedNode.id);
+  //   else if (!focusedNode.parent?.isRoot) {
+  //     tree.focus(focusedNode.parent);
+  //   }
+  //   return;
+  // }
 
   // ? Selecting entire note tree.
   if (e.key === "a" && pressedControlKey && !tree.props.disableMultiSelection && !isRepeatEvent) {

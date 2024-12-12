@@ -83,6 +83,9 @@ export interface TreeProps<T> {
   onContextMenuOpen?: (value: "settings" | "plus") => (e: React.MouseEvent) => void;
   onCloseOtherOpenFiles?: (nodeId: string) => void;
 
+  onArrowRight?: MouseEventHandler;
+  onArrowLeft?: MouseEventHandler;
+
   onDocumentEmojiClick?: (documentId: string) => (emoji: any) => void;
   onDocumentEmojiClear?: (documentId: string) => () => void;
 
