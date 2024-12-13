@@ -76,12 +76,6 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
     return;
   }
 
-  // ? Open context menu on right arrow key.
-  if (e.key === "ArrowRight") {
-    tree.props.onContextMenu?.(e);
-    return true;
-  }
-
   // ? Toggle edit on focused node.
   if (e.key === "r" && pressedControlKey) {
     const node = tree.focusedNode;
@@ -117,6 +111,12 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
 
   if (!focusWithinTree) {
     return;
+  }
+
+  // ? Open context menu on right arrow key.
+  if (e.key === "ArrowRight") {
+    tree.props.onContextMenu?.(e);
+    return true;
   }
 
   if (e.key === "Escape") {
