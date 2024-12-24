@@ -47,8 +47,7 @@ const handleKeyDown = (tree: TreeApi<unknown>) => (e: any) => {
   // ! GLOBAL TREE KEY-BINDS (NO FOCUSES REQUIRED)
   // ? Creating a new file or folder node.
   if (e.key === "n" && pressedControlKey) {
-    const isFolderCreate = e.shiftKey;
-    const type = isFolderCreate ? (isWorkspaceTree ? "PROJECT" : "FOLDER") : isWorkspaceTree ? "PROJECT" : "FILE";
+    const type = isWorkspaceTree ? "PROJECT" : e.shiftKey ? "FOLDER" : "FILE";
 
     let parentId: string | null = null;
     let parentNode = null;
