@@ -1,6 +1,5 @@
 import React from "react";
 import { TreeApi } from "./tree-api";
-import { IdObj } from "../types/utils";
 import { ROOT_ID } from "../data/create-root";
 
 type Params<T> = {
@@ -17,7 +16,7 @@ type Params<T> = {
 export class NodeApi<T = any> {
   tree: TreeApi<T>;
   id: string;
-  data: T; // TODO: define this as TreeItemData from app.
+  data: T; // ? TreeItemData from hero-app.
   level: number;
   children: NodeApi<T>[] | null;
   parent: NodeApi<T> | null;

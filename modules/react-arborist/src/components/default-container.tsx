@@ -11,7 +11,6 @@ let timeoutId: NodeJS.Timeout | null = null;
 
 const handleRestoreFocusTreeBlur = (tree: TreeApi<unknown>) => {
   // Try focus editor, or overview.
-  // TODO: add id to editor element?
   const editor = document.getElementsByClassName("ProseMirror")[0] as HTMLElement;
   if (editor) {
     editor.focus();
@@ -300,8 +299,6 @@ export function DefaultContainer() {
   };
 
   const handleOnBlur = (e: React.FocusEvent<HTMLDivElement, Element>) => {
-    console.log("[blur] default container", { e, role: e?.target?.getAttribute("role") });
-
     const preventIds = ["node-settings-button", "node-plus-button", "create-popup-name"];
 
     if (
