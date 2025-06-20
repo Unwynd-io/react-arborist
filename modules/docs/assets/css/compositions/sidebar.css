@@ -18,6 +18,7 @@ between the sidebar and main content.
 EXCEPTIONS
 .sidebar[data-direction='rtl']: flips the sidebar to be on the right 
 */
+
 .sidebar {
   display: flex;
   flex-wrap: wrap;

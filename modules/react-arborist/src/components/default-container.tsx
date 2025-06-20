@@ -291,6 +291,7 @@ export function DefaultContainer() {
   useDataUpdates();
 
   const tree = useTreeApi();
+  const { isDevMode } = tree.props;
 
   const handleOnFocus = (e: React.FocusEvent<HTMLDivElement, Element>) => {
     if (!e.currentTarget.contains(e.relatedTarget)) {
@@ -323,6 +324,13 @@ export function DefaultContainer() {
       tree.onFocus();
     }
   }, []);
+
+  useEffect(() => {
+    if (isDevMode) {
+      // @ts-expect-error dev mode.
+      window.fileTreeRef = tree;
+    }
+  }, [isDevMode]);
 
   return (
     <div

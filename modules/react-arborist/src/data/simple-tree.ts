@@ -50,7 +50,7 @@ export class SimpleTree<T extends SimpleData> {
 
 function createRoot<T extends SimpleData>(data: T[]) {
   const root = new SimpleNode<T>({ id: "ROOT" } as T, null);
-  root.children = data.map((d) => createNode(d as T, root));
+  root.children = typeof data === "object" ? data.map((d) => createNode(d as T, root)) : [];
   return root;
 }
 
